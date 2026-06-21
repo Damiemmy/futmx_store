@@ -1,0 +1,41 @@
+# Ignore Python virtual environments
+env/
+Backend/env/
+Backend/bin/
+Backend/lib/
+Backend/lib64/
+Backend/pyvenv.cfg
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Django stuff
+*.sqlite3
+db.sqlite3
+
+# Environment variables
+.env
+*.env
+.env.*
+
+# Editor junk
+.vscode/
+.idea/
+
+# OS junk
+Thumbs.db
+.DS_Store
+Backend/lib64
+
+venv/
+.env
+__pycache__/
+*.pyc
+media/
+staticfiles/
+db.sqlite3
+
+
+staticfiles/
+media/
