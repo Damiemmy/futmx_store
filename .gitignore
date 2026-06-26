@@ -50,6 +50,7 @@ htmlcov/
 .env
 .env.*
 venv/
+trash/
 .venv/
 ENV/
 env/

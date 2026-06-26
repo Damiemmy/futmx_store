@@ -25,7 +25,7 @@ export function HomePage() {
             Stories that stay with you long after the last page
           </h1>
           <p className="mt-6 max-w-xl text-lg text-cream/70">
-            Discover handpicked fiction, essays, course materials and timeless classics in a
+            Discover handpicked fiction, essays,past questions,course materials and timeless classics in a
             space designed for readers who savor every word.
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
@@ -40,7 +40,7 @@ export function HomePage() {
               Create account
             </Link>):(
             <Link
-              to="/register"
+              to="/become-host"
               className="inline-flex items-center justify-center rounded-md border border-cream/30 px-5 py-2.5 text-sm font-medium text-cream transition hover:bg-cream/10"
             >
               Become a Host

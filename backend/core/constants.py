@@ -1,10 +1,6 @@
 class UserRole:
     CUSTOMER = "customer"
-    STAFF = "staff"
+    LECTURER = "lecturer"
+    COURSE_REP = "course_rep"
+    VENDOR = "vendor"
     ADMIN = "admin"
-
-    CHOICES = (
-        (CUSTOMER, "Customer"),
-        (STAFF, "Staff"),
-        (ADMIN, "Admin"),
-    )

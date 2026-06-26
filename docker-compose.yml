@@ -1,55 +1,80 @@
 version: "3.9"
 
 services:
-  web:
-    build: .
-    container_name: django_web
-    restart: always
-    entrypoint: ["sh", "/app/entrypoint.sh"]
-    command: gunicorn Backend.wsgi:application --bind 0.0.0.0:8000
-    volumes:
-      - .:/app
-      - static_volume:/app/staticfiles
-    env_file:
-      - .env
-    depends_on:
-      - db
-      - redis
 
   db:
     image: postgres:16
-    container_name: postgres_db
+    container_name: db
     restart: always
-    env_file:
-      - .env
+    environment:
+      POSTGRES_USER: damiemmy
+      POSTGRES_PASSWORD: rest_framework
+      POSTGRES_DB: bookstore
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
   redis:
-    image: redis:7
-    container_name: redis_cache
+    image: redis:7-alpine
+    container_name: redis
     restart: always
+
+  backend:
+    build: ./backend
+    container_name: backend
+    entrypoint: ["sh", "/app/entrypoint.sh"]
+    restart: always
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./backend:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+
+  celery:
+    build: ./backend
+    container_name: celery
+    command: celery -A config worker -l info
+    restart: always
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - backend
+      - redis
+
+  celery-beat:
+    build: ./backend
+    container_name: celery-beat
+    command: celery -A config beat -l info
+    restart: always
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - backend
+      - redis
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    restart: always
+
   nginx:
     image: nginx:latest
-    container_name: nginx_proxy
+    container_name: nginx
     restart: always
     ports:
       - "80:80"
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
-      - static_volume:/app/staticfiles
+      - static_volume:/static
+      - media_volume:/media
     depends_on:
-      - web
-  celery:
-    build: .
-    command: celery -A Backend worker -l info
-    restart: always
-    depends_on:
-      - web
-      - redis
-      - db
-    env_file:
-      - .env
+      - backend
+      - frontend
+
 volumes:
   postgres_data:
   static_volume:
+  media_volume:

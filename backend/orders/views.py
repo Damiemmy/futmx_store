@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core.permissions import IsOwnerOrStaff
+from core.permissions import IsOwnerOrAdminOrVendor
 
 from .models import CartItem, Order
 from .serializers import (
@@ -81,7 +81,7 @@ class CheckoutView(APIView):
 
 class OrderViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = OrderSerializer
-    permission_classes = [IsAuthenticated, IsOwnerOrStaff]
+    permission_classes = [IsAuthenticated, IsOwnerOrAdminOrVendor]
 
     def get_queryset(self):
         qs = Order.objects.select_related("user").prefetch_related(

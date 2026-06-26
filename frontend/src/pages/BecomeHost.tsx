@@ -1,11 +1,9 @@
-"use client";
-
 import { motion } from "framer-motion";
 import { ShieldCheck, Home, BadgeCheck } from "lucide-react";
 import { useEffect, useState } from "react";
-import { api } from "@/api/client";
+import { authApi } from "../api/endpoints";
 import { useNavigate } from "react-router-dom";
-
+import toast from "react-hot-toast";
 
 export default function BecomeHostPage() {
     const navigate=useNavigate()
@@ -14,8 +12,9 @@ export default function BecomeHostPage() {
         phone_number: "",
         faculty: "",
         department: "",
-        host_reasons: "",
-        role:"",
+        reason: "",
+        requested_role:"",
+        id_document: "null",
     });
 
   const handleChange = (e) => {
@@ -24,7 +23,9 @@ export default function BecomeHostPage() {
       [e.target.name]: e.target.value,
     });
   };
-
+useEffect(()=>{
+  console.log(formData)
+},[formData])
 /* const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -73,18 +74,21 @@ export default function BecomeHostPage() {
   //   console.log(formData)
   // },[formData])
 
+
+
+  /*
   const handleSubmit = async (e) => {
   e.preventDefault();
 
   const submitData = new FormData();
 
-  submitData.append("full_name", formData.full_name);
+ submitData.append("full_name", formData.full_name);
   submitData.append("phone_number", formData.phone_number);
   submitData.append("department", formData.department);
   submitData.append("faculty", formData.faculty);
   submitData.append("role", formData.role);
   submitData.append("host_reasons", formData.host_reasons);
-  submitData.append("id_document", formData.id_document);
+  submitData.append("id_document", formData.id_document); 
 
   try {
     const response = await API.post(
@@ -108,6 +112,37 @@ export default function BecomeHostPage() {
   } catch (err) {
     console.log(err.response?.data || err.message);
   }
+};*/
+
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    if (!formData.id_document) {
+      return alert("Please upload your ID document");
+    }
+
+    const response = await authApi.roles({
+      full_name: formData.full_name,
+      phone_number: formData.phone_number,
+      department: formData.department,
+      faculty: formData.faculty,
+      requested_role: formData.requested_role,
+      reason: formData.reason,
+      id_document: formData.id_document,
+    });
+
+    console.log(response.data);
+    toast.success(response.data.message);
+    await new Promise(resolve => setTimeout(resolve, 1200));
+    navigate("/");
+  } catch (err: any) {
+    console.log(err.response?.data);
+    toast.error(
+        err.response?.data?.message || "Something went wrong"
+    );
+  }
 };
 
   return (
@@ -115,7 +150,7 @@ export default function BecomeHostPage() {
       {/* HERO SECTION */}
       <section className="relative h-[60vh] flex items-center justify-center overflow-hidden">
         <img
-          src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267"
+          src="become-host.jfif"
           alt="Host"
           className="absolute inset-0 w-full h-full object-cover"
         />
@@ -133,8 +168,7 @@ export default function BecomeHostPage() {
           </h1>
 
           <p className="max-w-2xl mx-auto text-lg md:text-xl text-gray-200">
-            Share your space, earn extra income, and welcome travelers from
-            around the world.
+            Share your space, earn extra income, and publish Relevant Materials For users Needs
           </p>
         </motion.div>
       </section>
@@ -155,7 +189,7 @@ export default function BecomeHostPage() {
             </h3>
 
             <p className="text-gray-600">
-              Rent out apartments, houses, rooms, or unique stays to travelers.
+              publish and sell out material, past-questions, books, or repackaged information for users.
             </p>
           </motion.div>
 
@@ -190,7 +224,7 @@ export default function BecomeHostPage() {
             </h3>
 
             <p className="text-gray-600">
-              Your listings and earnings are protected with our secure system.
+              Your books and earnings are protected with our secure system.
             </p>
           </motion.div>
         </div>
@@ -234,14 +268,14 @@ export default function BecomeHostPage() {
                 <label className="block mb-2 font-semibold">I am</label>
 
                 <select
-                    name="role"
-                    value={formData.role}
+                    name="requested_role"
+                    value={formData.requested_role}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded-xl px-4 py-4 outline-none focus:ring-2 focus:ring-pink-500"
                 >
                     <option value="">Select your role</option>
                     <option value="lecturer">Lecturer</option>
-                    <option value="student">Student (Course Rep)</option>
+                    <option value="course_rep">Student (Course Rep)</option>
                     <option value="vendor">Vendor</option>
                 </select>
             </div>
@@ -271,7 +305,7 @@ export default function BecomeHostPage() {
                 name="department"
                 value={formData.department}
                 onChange={handleChange}
-                placeholder="Your city/location"
+                placeholder="Your Department"
                 className="w-full border border-gray-300 rounded-xl px-4 py-4 outline-none focus:ring-2 focus:ring-pink-500"
               />
             </div>
@@ -296,8 +330,8 @@ export default function BecomeHostPage() {
 
               <textarea
                 rows={4}
-                name="host_reasons"
-                value={formData.host_reasons}
+                name="reason"
+                value={formData.reason}
                 onChange={handleChange}
                 placeholder="Tell us why you want to join"
                 className="w-full border border-gray-300 rounded-xl px-4 py-4 outline-none focus:ring-2 focus:ring-pink-500"
@@ -306,14 +340,14 @@ export default function BecomeHostPage() {
 
             <div>
               <label className="block mb-2 font-semibold">
-                National ID
+                National / Student ID
               </label>
 
               <label className="w-full border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer hover:border-pink-500 transition bg-gray-50">
                 
                 <div className="text-center">
                   <p className="text-lg font-semibold text-gray-700">
-                    Upload Your National ID
+                    Upload Your Verification ID
                   </p>
 
                   <p className="text-sm text-gray-500 mt-1">
@@ -335,10 +369,16 @@ export default function BecomeHostPage() {
                   type="file"
                   name="id_document"
                   className="hidden"
+                  // onChange={(e) =>
+                  //   setFormData({
+                  //     ...formData,
+                  //     id_document: e.target.files?.[0] || null,
+                  //   })
+                  // }
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      id_document: e.target.files[0],
+                      id_document: e.target.files[0]
                     })
                   }
                 />

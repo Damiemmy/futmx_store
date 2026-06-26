@@ -18,7 +18,14 @@ else:
     sys.exit('Database unavailable')
 "
 
+echo "Running migrations..."
 python manage.py migrate --noinput
+
+echo "Loading initial data (if needed)..."
+python manage.py loaddata data.json || echo "Fixture already loaded or skipped"
+
+echo "Collecting static files..."
 python manage.py collectstatic --noinput
+
 
 exec gunicorn futreg.wsgi:application --bind 0.0.0.0:8000 --workers 3

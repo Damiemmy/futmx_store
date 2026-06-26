@@ -12,12 +12,12 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from core.models import LecturerRequest
+from core.models import RoleRequest
 from .serializers import (
     ChangePasswordSerializer,
     RegisterSerializer,
     UserProfileSerializer,
-    LecturerRequestSerializer,
+    RoleRequestSerializer,
 )
 from .tasks import send_verification_email_task
 
@@ -151,8 +151,8 @@ class GoogleOAuthCallbackView(APIView):
         return response
 
 class HostRequest(ModelViewSet):
-    queryset=LecturerRequest.objects.all()
-    serializer_class=LecturerRequestSerializer
+    queryset=RoleRequest.objects.all()
+    serializer_class=RoleRequestSerializer
 
     @action(detail=False,methods=['post'])
     def become_host(self,request):
@@ -162,15 +162,22 @@ class HostRequest(ModelViewSet):
         phone_number= request.data.get('phone_number')
         faculty=request.data.get('faculty')
         department= request.data.get('department')
-        id_document = request.FILES.get("id_document")
+        requested_role = request.data.get('requested_role')
+        reason = request.data.get('reason')   # ✅ FIXED
+        id_document = request.FILES.get("id_document",None)
 
-        if HostRequest.objects.filter(user=user,status='pending').exists():
-            return Response({"message":"You already have a pending requests"})
-        if HostRequest.objects.filter(user=user,status='approved').exists():
-            return Response({"message":"You are Already a Host"})
-        print(user,full_name,phone_number,location,hosting_experience,host_reasons)
-        HostRequest.objects.create(user=user,email=self.request.user.email,username=self.request.user.username,full_name=full_name,phone_number=phone_number,faculty=faculty,department=department,host_reasons=host_reasons,id_document=id_document)
-        return Response({'message':'Verification Request Submitted'})
+
+        print("Current user:", user)
+        print(RoleRequest.objects.filter(user=user))
+        print(RoleRequest.objects.filter(user=user, status="pending"))
+        print(RoleRequest.objects.filter(user=user, status="approved"))
+
+        if RoleRequest.objects.filter(user=user,status='pending').exists():
+            return Response({"message":"You already have a pending requests"},status=status.HTTP_409_CONFLICT)
+        if RoleRequest.objects.filter(user=user,status='approved').exists():
+            return Response({"message":"You are Already a Host"},status=status.HTTP_409_CONFLICT)
+        RoleRequest.objects.create(user=user,full_name=full_name,phone_number=phone_number, requested_role=requested_role,reason=reason,faculty=faculty,department=department, id_document=id_document)
+        return Response({'message':'Verification Request Submitted'},status=status.HTTP_201_CREATED)
 
     def perform_create(self,serializer):
         return serializer.save(user=self.request.user)
@@ -179,3 +186,63 @@ class HostRequest(ModelViewSet):
         if self.action in ['become_host']:
             return[IsAuthenticated()]
         return super().get_permissions()
+
+
+class AdminVerificationRequest(ModelViewSet):
+    queryset=RoleRequest.objects.all()
+    serializer_class=RoleRequestSerializer
+    filterset_fields=['status']
+    @action(detail=True,methods=['post'])
+    def approved(self,request,pk=None):
+        # don't use code below in ModelViewSet it only Works in ViewSet, using the results to this error(using this results to an Attribute Error (AttributeError at /user/admin-verify-user/37/approved/ 'AdminVerificationRequest' object has no attribute 'object')
+        
+        #hostrequest=self.object.get()
+
+        #right code to use:
+        hostrequest=self.get_object()
+
+
+        if hostrequest.status !='pending':
+            return Response({"message":"Request has been Processed"})
+
+        hostrequest.status='approved'
+        hostrequest.save()
+
+        return Response({"message":"Host request Approved Successfully"})
+
+    @action(detail=True,methods=['post'])
+    def rejected(self,request,pk=None):
+        # hostrequest=self.object.get() - for ViewSet alone
+        hostrequest=self.get_object()
+        if hostrequest.status != "pending":
+            return Response({"message":"Request has been Processed"})
+
+        hostrequest.status='rejected'
+        hostrequest.save()
+        return Response({"message":"Host Request rejected"})
+
+    def get_permissions(self):
+        if self.action in ['rejected','approved']:
+            return[IsAuthenticated(),IsAdmin()]
+        return[AllowAny()]
+
+class VerifyAPIView(APIView):
+    def get(self,request,uidb64,token):
+        print('MYREQ:',request.data)
+        try:
+            uid=urlsafe_base64_decode(uidb64).decode()
+            user=User.objects.get(pk=uid)
+           
+
+        except Exception :
+            return Response({'error':'invalid_link'},status=status.HTTP_400_BAD_REQUEST)
+            
+        if default_token_generator.check_token(user,token):
+            user.is_active=True
+            user.save()
+            return Response({"message":"verification is Successful"})
+        return Response(
+                {"error": "Invalid or expired token"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    

@@ -28,6 +28,27 @@ export const authApi = {
   googleLogin: () => {
     window.location.href = "/api/auth/google/login/";
   },
+    roles: (data: {
+    full_name: string;
+    phone_number: string;
+    department: string;
+    faculty: string;
+    requested_role: string;
+    reason: string;
+    id_document: File;
+  }) => {
+    const formData = new FormData();
+
+    formData.append("full_name", data.full_name);
+    formData.append("phone_number", data.phone_number);
+    formData.append("department", data.department);
+    formData.append("faculty", data.faculty);
+    formData.append("requested_role", data.requested_role);
+    formData.append("reason", data.reason);
+
+
+    return api.post("/api/auth/roles/become_host/", formData);
+  },
 };
 
 export const booksApi = {
@@ -51,3 +72,5 @@ export const ordersApi = {
   checkout: (shipping_address: string) =>
     api.post<Order>("/api/orders/checkout/", { shipping_address }),
 };
+
+

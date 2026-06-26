@@ -4,7 +4,7 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from core.models import LecturerRequest
+from core.models import RoleRequest
 
 from core.constants import UserRole
 
@@ -74,6 +74,8 @@ class ChangePasswordSerializer(serializers.Serializer):
             raise serializers.ValidationError("Current password is incorrect.")
         return value
 
-class LecturerRequestSerializer(serializers.ModelSerializer):
-    model=LecturerRequest
-    fields="__all__"
+class RoleRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=RoleRequest
+        fields="__all__"
+        read_only_fields=['user']

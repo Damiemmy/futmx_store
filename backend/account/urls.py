@@ -16,7 +16,7 @@ from .views import (
 )
 
 router=DefaultRouter()
-router.register('become-host',HostRequest,basename='become-host')
+router.register('roles',HostRequest,basename='roles')
 
 urlpatterns = [
     path("register/", RegisterView.as_view(), name="register"),
