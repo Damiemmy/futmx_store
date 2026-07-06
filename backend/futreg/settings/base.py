@@ -15,6 +15,7 @@ environ.Env.read_env(BASE_DIR.parent / ".env")
 SECRET_KEY = env("SECRET_KEY", default="django-insecure-dev-only-change-in-production")
 DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
+CSRF_TRUSTED_ORIGINS=env("CSRF_TRUSTED_ORIGINS").split(',')
 
 INSTALLED_APPS = [
     "django.contrib.admin",
