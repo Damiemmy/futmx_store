@@ -1,5 +1,6 @@
 from datetime import timedelta
 from pathlib import Path
+import os
 
 import environ
 
@@ -34,10 +35,10 @@ INSTALLED_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
-    "core",
-    "account",
-    "catalog",
-    "orders",
+    "apps.core",
+    "apps.account",
+    "apps.catalog",
+    "apps.orders",
 ]
 
 SITE_ID = 1
@@ -73,11 +74,20 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "futreg.wsgi.application"
 
+# for docker
+
+# DATABASES = {
+#     "default": env.db(
+#         "DATABASE_URL",
+#         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+#     )
+# }
+
 DATABASES = {
-    "default": env.db(
-        "DATABASE_URL",
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-    )
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -177,6 +187,9 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 

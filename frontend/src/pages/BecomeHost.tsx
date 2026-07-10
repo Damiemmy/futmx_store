@@ -340,7 +340,7 @@ const handleSubmit = async (e) => {
 
             <div>
               <label className="block mb-2 font-semibold">
-                National / Student ID
+                National / Lecturer ID / Student ID
               </label>
 
               <label className="w-full border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer hover:border-pink-500 transition bg-gray-50">
